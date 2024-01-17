@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from extensions import db, jwt
 from auth import auth_bp
 from users import user_bp
+from models import User
 
 app = Flask(__name__)
 
@@ -17,6 +18,14 @@ jwt.init_app(app)
 #register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(user_bp, url_prefix='/users')
+
+# load user
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_headers, jwt_data):
+    identity = jwt_data["sub"]
+    return User.query.filter_by(username=identity).one_or_none()
+
+
 
 # additional claims
 @jwt.additional_claims_loader
